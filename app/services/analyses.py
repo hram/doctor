@@ -1,6 +1,9 @@
+from pathlib import PurePosixPath
+
 from app.repositories.analyses import AnalysisRepository
 from app.repositories.markers import MarkerRepository
 from app.schemas import Analysis, AnalysisCreate, MeasurementCreate
+from app.services.documents import build_document_store, canonical_relpath
 
 
 def compute_flag(m: MeasurementCreate) -> str | None:
@@ -36,6 +39,43 @@ class AnalysisService:
 
     def list_for_person(self, person_id: int) -> list[Analysis]:
         return self._repository.list_by_person(person_id)
+
+    def get(self, analysis_id: int) -> Analysis | None:
+        return self._repository.get(analysis_id)
+
+    def update(self, analysis_id: int, data: AnalysisCreate) -> None:
+        self._repository.update(analysis_id, data)
+
+    def delete(self, analysis_id: int) -> None:
+        self._repository.delete(analysis_id)
+
+    def set_document_path(self, analysis_id: int, relpath: str) -> None:
+        self._repository.set_document_path(analysis_id, relpath)
+
+    def attach_uploaded(
+        self, analysis_id: int, person_name: str, data: bytes, ext: str
+    ) -> None:
+        """Привязать загруженный из браузера файл к анализу."""
+        a = self._repository.get(analysis_id)
+        if a is None:
+            return
+        rel = canonical_relpath(person_name, a.date, a.title, a.id, ext or ".pdf")
+        store = build_document_store()
+        store.write(rel, data)
+        self._repository.set_document_path(a.id, rel)
+
+    def attach_from_inbox(
+        self, analysis_id: int, person_name: str, inbox_name: str
+    ) -> None:
+        """Привязать скан из «входящих»: перенести в каноническое место."""
+        a = self._repository.get(analysis_id)
+        if a is None:
+            return
+        ext = PurePosixPath(inbox_name).suffix or ".pdf"
+        rel = canonical_relpath(person_name, a.date, a.title, a.id, ext)
+        store = build_document_store()
+        store.move_from_inbox(inbox_name, rel)
+        self._repository.set_document_path(a.id, rel)
 
     def create(self, person_id: int, data: AnalysisCreate) -> int:
         """Создать/обновить анализ. Единица/референс подтягиваются из справочника

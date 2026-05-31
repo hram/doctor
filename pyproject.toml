@@ -13,6 +13,7 @@ dependencies = [
     "jinja2>=3.1",
     "python-multipart>=0.0.12",
     "pydantic-settings>=2.6",
+    "smbprotocol>=1.12",
 ]
 
 [project.optional-dependencies]
@@ -39,6 +40,7 @@ select = ["E", "F", "I", "B", "UP", "C4", "SIM"]
 extend-immutable-calls = [
     "fastapi.Depends",
     "fastapi.Form",
+    "fastapi.File",
     "fastapi.Query",
     "fastapi.Path",
     "fastapi.Body",

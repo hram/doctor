@@ -31,6 +31,50 @@ SMClinic-синк пишут в одну нормализованную схем
 единую ленту). Графики динамики и планирование визитов — следующий этап
 (`/api/person/{id}/markers` уже отдаёт ряды значений).
 
+### Документы (сканы) — источник истины
+
+Сканы анализов/исследований — невосстановимый источник истины (БД из них
+воспроизводима, они из БД — нет). Хранятся в `settings.documents_root`
+(`PORTAL_DOCUMENTS_ROOT`), в проде это **примонтированная SMB-шара**
+`/srv/scans` (см. память `reference_scans_storage`). Портал не говорит по SMB —
+шара монтируется через cifs, портал читает путь:
+
+```
+# /etc/fstab (пример), креды в /root/.smbcredentials (chmod 600)
+//192.168.1.72/scans  /mnt/scans  cifs  credentials=/root/.smbcredentials,uid=...,iocharset=utf8,nofail  0 0
+# затем PORTAL_DOCUMENTS_ROOT=/mnt/scans/analizy
+```
+
+Правило организации под корнем (`app/services/documents.py`):
+
+```
+{documents_root}/{Имя}/{YYYY-MM-DD}__{slug}__aid{analysis_id}.{ext}
+```
+
+- папка на каждого человека — для просмотра прямо в шаре;
+- токен `aid{analysis_id}` — однозначный ключ связи с БД (нет конфликтов);
+- в БД (`analysis.document_path`) — путь относительно корня.
+
+Привязка: `python -m scripts.organize_documents <analysis_id> <файл>` копирует скан
+в каноническое место и прописывает `document_path`. Просмотр — `GET /documents/{id}`
+(inline, с защитой от path-traversal), ссылка появляется в карточке человека.
+
+«Входящие» (inbox) — неразобранные сканы: для SMB это корень шары (куда пишет
+scanservjs с Pi), для local — `documents_inbox` (дефолт `data/inbox`).
+`DocumentStore.list_inbox()` / `move_from_inbox()`.
+
+### Ручной ввод (CRUD)
+
+Формы в `routers/pages.py` (POST → `303`): по анализам, визитам и болезням —
+создание/редактирование/удаление (`GET /person/{id}/{kind}/new`, `POST .../{kind}`,
+`GET /{kind}/{id}/edit`, `POST /{kind}/{id}`, `POST /{kind}/{id}/delete`).
+Шаблоны `*_form.html` (одна форма на create и edit). В форме анализа и визита можно
+выбрать скан из «входящих» или загрузить файлом — он привязывается к записи
+(`document_path` есть и у `analysis`, и у `visit`; отдача — `/documents/{id}` и
+`/visit-documents/{id}`; файлы визитов в имени несут токен `vid{id}`, анализов — `aid{id}`).
+Сервисы: `AnalysisService`/`VisitService` (+`attach_uploaded`/`attach_from_inbox`),
+`IllnessService`. Ввод значений показателей в форме — пока нет (следующий шаг).
+
 ## Архитектура
 
 Поток запроса строго однонаправленный:

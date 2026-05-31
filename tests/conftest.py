@@ -8,6 +8,19 @@ from fastapi.testclient import TestClient
 from app.config import get_settings
 
 
+@pytest.fixture(autouse=True)
+def _isolate_documents(tmp_path, monkeypatch) -> None:
+    """Изолировать тесты от реального .env: локальный бэкенд + временные каталоги.
+
+    Иначе настройки портала (например, .env с backend=smb) утекли бы в тесты.
+    Тесты, которым нужны свои каталоги документов, переопределяют эти переменные.
+    """
+    monkeypatch.setenv("PORTAL_DOCUMENTS_BACKEND", "local")
+    monkeypatch.setenv("PORTAL_DOCUMENTS_ROOT", str(tmp_path / "_docs"))
+    monkeypatch.setenv("PORTAL_DOCUMENTS_INBOX", str(tmp_path / "_inbox"))
+    get_settings.cache_clear()
+
+
 @pytest.fixture
 def client(monkeypatch) -> Iterator[TestClient]:
     """TestClient с изолированной in-memory БД на каждый тест.

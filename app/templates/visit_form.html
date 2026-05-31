@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}{% if obj %}Изменить визит{% else %}Новый визит{% endif %} — {{ app_name }}{% endblock %}
+
+{% block content %}
+<p class="back"><a href="/person/{{ person.id }}">← {{ person.name }}</a></p>
+<h1>{% if obj %}Изменить визит{% else %}Новый визит{% endif %} — {{ person.name }}</h1>
+
+<form class="record-form" method="post" action="{{ action }}" enctype="multipart/form-data">
+  <label>Дата
+    <input type="date" name="date" required value="{{ obj.date if obj else '' }}">
+  </label>
+  <label>Специальность
+    <input type="text" name="specialty" value="{{ obj.specialty or '' if obj else '' }}">
+  </label>
+  <label>Врач
+    <input type="text" name="doctor_name" value="{{ obj.doctor_name or '' if obj else '' }}">
+  </label>
+  <label>Клиника
+    <input type="text" name="clinic" value="{{ obj.clinic or '' if obj else '' }}">
+  </label>
+  <label>Заключение
+    <textarea name="conclusion" rows="3">{{ obj.conclusion or '' if obj else '' }}</textarea>
+  </label>
+  <label>Заметки
+    <textarea name="notes" rows="2">{{ obj.notes or '' if obj else '' }}</textarea>
+  </label>
+
+  <fieldset class="scan">
+    <legend>Скан документа</legend>
+    {% if obj and obj.document_path %}
+    <p class="hint">Сейчас привязан: <code>{{ obj.document_path }}</code></p>
+    {% endif %}
+    {% if inbox %}
+    <label>Выбрать из «входящих»
+      <select name="inbox_name">
+        <option value="">— не выбирать —</option>
+        {% for f in inbox %}<option value="{{ f }}">{{ f }}</option>{% endfor %}
+      </select>
+    </label>
+    {% else %}
+    <input type="hidden" name="inbox_name" value="">
+    <p class="hint">Во «входящих» пусто.</p>
+    {% endif %}
+    <label>или загрузить файл
+      <input type="file" name="upload" accept=".pdf,.jpg,.jpeg,.png">
+    </label>
+  </fieldset>
+
+  <div class="actions">
+    <button type="submit">Сохранить</button>
+    <a href="/person/{{ person.id }}">Отмена</a>
+  </div>
+</form>
+{% endblock %}

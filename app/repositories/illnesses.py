@@ -7,6 +7,27 @@ _COLS = "id, person_id, start_date, title, end_date, status, notes"
 class IllnessRepository:
     """Доступ к эпизодам болезней (таблица ``illness``)."""
 
+    def get(self, illness_id: int) -> Illness | None:
+        with get_connection() as conn:
+            row = conn.execute(
+                f"SELECT {_COLS} FROM illness WHERE id = ?", (illness_id,)
+            ).fetchone()
+        return Illness(**dict(row)) if row else None
+
+    def update(self, illness_id: int, data: IllnessCreate) -> None:
+        end = data.end_date.isoformat() if data.end_date else None
+        with get_connection() as conn:
+            conn.execute(
+                "UPDATE illness SET start_date = ?, title = ?, end_date = ?, "
+                "status = ?, notes = ? WHERE id = ?",
+                (data.start_date.isoformat(), data.title, end, data.status,
+                 data.notes, illness_id),
+            )
+
+    def delete(self, illness_id: int) -> None:
+        with get_connection() as conn:
+            conn.execute("DELETE FROM illness WHERE id = ?", (illness_id,))
+
     def list_by_person(self, person_id: int) -> list[Illness]:
         with get_connection() as conn:
             rows = conn.execute(

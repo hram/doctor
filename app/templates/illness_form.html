@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}{% if obj %}Изменить болезнь{% else %}Новая болезнь{% endif %} — {{ app_name }}{% endblock %}
+
+{% block content %}
+<p class="back"><a href="/person/{{ person.id }}">← {{ person.name }}</a></p>
+<h1>{% if obj %}Изменить болезнь{% else %}Новая болезнь{% endif %} — {{ person.name }}</h1>
+
+<form class="record-form" method="post" action="{{ action }}">
+  <label>Дата начала
+    <input type="date" name="start_date" required
+           value="{{ obj.start_date if obj else '' }}">
+  </label>
+  <label>Название
+    <input type="text" name="title" required maxlength="300"
+           value="{{ obj.title if obj else '' }}">
+  </label>
+  <label>Дата окончания
+    <input type="date" name="end_date"
+           value="{{ obj.end_date if obj and obj.end_date else '' }}">
+  </label>
+  <label>Статус
+    <input type="text" name="status" list="ill_status"
+           value="{{ obj.status or '' if obj else '' }}">
+  </label>
+  <datalist id="ill_status">
+    <option value="active"><option value="resolved">
+  </datalist>
+  <label>Заметки
+    <textarea name="notes" rows="3">{{ obj.notes or '' if obj else '' }}</textarea>
+  </label>
+
+  <div class="actions">
+    <button type="submit">Сохранить</button>
+    <a href="/person/{{ person.id }}">Отмена</a>
+  </div>
+</form>
+{% endblock %}

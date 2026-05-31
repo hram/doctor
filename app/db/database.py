@@ -97,6 +97,7 @@ CREATE TABLE IF NOT EXISTS visit (
     conclusion  TEXT,
     notes       TEXT,
     source      TEXT    NOT NULL DEFAULT 'manual',
+    document_path TEXT,
     UNIQUE (person_id, date, specialty, doctor_name)
 );
 
@@ -221,8 +222,17 @@ def _seed_markers(conn: sqlite3.Connection) -> None:
     )
 
 
+def _migrate(conn: sqlite3.Connection) -> None:
+    """Лёгкие миграции для уже существующих БД (CREATE TABLE IF NOT EXISTS не правит
+    существующие таблицы). Идемпотентно: добавляем недостающие колонки."""
+    visit_cols = {row[1] for row in conn.execute("PRAGMA table_info(visit)")}
+    if "document_path" not in visit_cols:
+        conn.execute("ALTER TABLE visit ADD COLUMN document_path TEXT")
+
+
 def init_db() -> None:
     """Создать таблицы и засидить справочники. Вызывается на старте приложения."""
     with get_connection() as conn:
         conn.executescript(_SCHEMA)
+        _migrate(conn)
         _seed_markers(conn)

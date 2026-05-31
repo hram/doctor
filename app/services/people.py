@@ -78,6 +78,7 @@ class PersonService:
                         "doctor_name": v.doctor_name,
                         "specialty": v.specialty,
                         "clinic": v.clinic,
+                        "document_path": v.document_path,
                         "recommendations": [
                             {"text": r.text, "kind": r.kind,
                              "due_date": r.due_date.isoformat() if r.due_date else None,
@@ -121,6 +122,7 @@ class PersonService:
                 "category": a.category,
                 "lab": a.lab,
                 "source": a.source,
+                "document_path": a.document_path,
                 "measurements": [m.model_dump() for m in a.measurements],
             },
         )

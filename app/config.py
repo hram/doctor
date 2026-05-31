@@ -18,6 +18,20 @@ class Settings(BaseSettings):
     app_name: str = "Семейный портал здоровья"
     debug: bool = False
     database_path: Path = Path("data/app.sqlite3")
+
+    # --- Хранилище медицинских документов (сканов) ---
+    # Бэкенд: "local" (файлы на диске) или "smb" (портал сам коннектится к шаре).
+    documents_backend: str = "local"
+    # local: корень-каталог с документами и каталог «входящих» (неразобранных сканов).
+    documents_root: Path = Path("data/documents")
+    documents_inbox: Path = Path("data/inbox")
+    # smb: параметры подключения (портал подключается сам, монтировать не нужно).
+    smb_host: str = ""          # напр. 192.168.1.72
+    smb_share: str = ""         # напр. scans
+    smb_root: str = ""          # подпапка внутри шары, напр. analizy
+    smb_user: str = ""          # напр. family
+    smb_password: str = ""      # пароль (в .env, не в репозитории)
+
     host: str = "127.0.0.1"
     port: int = 8000
 

@@ -65,4 +65,5 @@ class Visit(BaseModel):
     conclusion: str | None = None
     notes: str | None = None
     source: str
+    document_path: str | None = None
     recommendations: list[Recommendation] = Field(default_factory=list)

@@ -17,6 +17,38 @@ class AnalysisRepository:
     репозитории и пишутся в одной транзакции.
     """
 
+    def get(self, analysis_id: int) -> Analysis | None:
+        with get_connection() as conn:
+            row = conn.execute(
+                f"SELECT {_ANALYSIS_COLS} FROM analysis WHERE id = ?", (analysis_id,)
+            ).fetchone()
+            if row is None:
+                return None
+            analysis = Analysis(**dict(row))
+            analysis.measurements = self._measurements(conn, analysis.id)
+        return analysis
+
+    def set_document_path(self, analysis_id: int, relpath: str) -> None:
+        with get_connection() as conn:
+            conn.execute(
+                "UPDATE analysis SET document_path = ? WHERE id = ?",
+                (relpath, analysis_id),
+            )
+
+    def update(self, analysis_id: int, data: AnalysisCreate) -> None:
+        """Обновить метаданные анализа по id (измерения и документ не трогаем)."""
+        with get_connection() as conn:
+            conn.execute(
+                "UPDATE analysis SET date = ?, category = ?, title = ?, lab = ?, "
+                "notes = ? WHERE id = ?",
+                (data.date.isoformat(), data.category, data.title, data.lab,
+                 data.notes, analysis_id),
+            )
+
+    def delete(self, analysis_id: int) -> None:
+        with get_connection() as conn:
+            conn.execute("DELETE FROM analysis WHERE id = ?", (analysis_id,))
+
     def list_by_person(self, person_id: int) -> list[Analysis]:
         with get_connection() as conn:
             rows = conn.execute(

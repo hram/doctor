@@ -154,3 +154,90 @@ h2 { font-size: 1.15rem; margin: 28px 0 14px; }
   margin-right: 6px;
 }
 .rec-due { color: var(--alert); font-size: .8rem; margin-left: 6px; }
+
+.doc-link { margin-top: 8px; font-size: .88rem; }
+.doc-link a { color: var(--accent); text-decoration: none; }
+.doc-link a:hover { text-decoration: underline; }
+
+/* ---- Кнопки добавления + контролы события ---- */
+.add-bar { display: flex; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+
+.btn {
+  display: inline-block;
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--accent);
+  text-decoration: none;
+  font-size: .9rem;
+}
+.btn:hover { border-color: var(--accent); }
+
+.event-head { position: relative; }
+.event-controls {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.event-controls a, .event-controls button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: .85rem;
+  padding: 2px 4px;
+  text-decoration: none;
+  opacity: .55;
+}
+.event-controls a:hover, .event-controls button:hover { opacity: 1; }
+.event-controls form { display: inline; margin: 0; }
+
+/* ---- Формы записей ---- */
+.record-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 560px;
+}
+.record-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: .85rem;
+  color: var(--muted);
+}
+.record-form input,
+.record-form select,
+.record-form textarea {
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: .95rem;
+  color: var(--fg);
+  font-family: inherit;
+}
+.record-form fieldset.scan {
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.record-form fieldset.scan legend { font-size: .8rem; color: var(--muted); padding: 0 6px; }
+.record-form .actions { display: flex; align-items: center; gap: 14px; margin-top: 4px; }
+.record-form .actions button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: .95rem;
+  cursor: pointer;
+}
+.record-form .actions a { color: var(--muted); text-decoration: none; font-size: .9rem; }

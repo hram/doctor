@@ -23,6 +23,12 @@
   {% endif %}
 </header>
 
+<p class="add-bar">
+  <a class="btn" href="/person/{{ person.id }}/analysis/new">+ анализ</a>
+  <a class="btn" href="/person/{{ person.id }}/visit/new">+ визит</a>
+  <a class="btn" href="/person/{{ person.id }}/illness/new">+ болезнь</a>
+</p>
+
 <h2>Хронология</h2>
 
 {% if timeline %}
@@ -38,6 +44,13 @@
         {%- else %}{{ e.kind }}{% endif -%}
       </span>
       <span class="event-title">{{ e.title }}</span>
+      <span class="event-controls">
+        <a class="edit" title="Изменить" href="/{{ e.kind }}/{{ e.ref_id }}/edit">✏️</a>
+        <form method="post" action="/{{ e.kind }}/{{ e.ref_id }}/delete"
+              onsubmit="return confirm('Удалить запись?')">
+          <button class="del" title="Удалить">🗑</button>
+        </form>
+      </span>
     </div>
 
     {% if e.kind == 'analysis' and e.extra.measurements %}
@@ -54,6 +67,14 @@
     </ul>
     {% elif e.detail %}
     <p class="event-detail">{{ e.detail }}</p>
+    {% endif %}
+
+    {% if e.kind == 'analysis' and e.extra.document_path %}
+    <p class="doc-link"><a href="/documents/{{ e.ref_id }}" target="_blank" rel="noopener">📄 исходный документ</a></p>
+    {% endif %}
+
+    {% if e.kind == 'visit' and e.extra.document_path %}
+    <p class="doc-link"><a href="/visit-documents/{{ e.ref_id }}" target="_blank" rel="noopener">📄 исходный документ</a></p>
     {% endif %}
 
     {% if e.kind == 'visit' and e.extra.recommendations %}

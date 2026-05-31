@@ -2,13 +2,49 @@ from app.db.database import get_connection
 from app.schemas import Recommendation, Visit, VisitCreate
 
 _VISIT_COLS = (
-    "id, person_id, date, doctor_name, specialty, clinic, conclusion, notes, source"
+    "id, person_id, date, doctor_name, specialty, clinic, conclusion, notes, source, "
+    "document_path"
 )
 _REC_COLS = "id, person_id, visit_id, text, kind, due_date, status"
 
 
 class VisitRepository:
     """Доступ к визитам и их рекомендациям (таблицы ``visit`` + ``recommendation``)."""
+
+    def get(self, visit_id: int) -> Visit | None:
+        with get_connection() as conn:
+            row = conn.execute(
+                f"SELECT {_VISIT_COLS} FROM visit WHERE id = ?", (visit_id,)
+            ).fetchone()
+            if row is None:
+                return None
+            visit = Visit(**dict(row))
+            rec_rows = conn.execute(
+                f"SELECT {_REC_COLS} FROM recommendation WHERE visit_id = ? ORDER BY id",
+                (visit_id,),
+            ).fetchall()
+            visit.recommendations = [Recommendation(**dict(r)) for r in rec_rows]
+        return visit
+
+    def update(self, visit_id: int, data: VisitCreate) -> None:
+        """Обновить метаданные визита по id (рекомендации не трогаем)."""
+        with get_connection() as conn:
+            conn.execute(
+                "UPDATE visit SET date = ?, doctor_name = ?, specialty = ?, "
+                "clinic = ?, conclusion = ?, notes = ? WHERE id = ?",
+                (data.date.isoformat(), data.doctor_name, data.specialty,
+                 data.clinic, data.conclusion, data.notes, visit_id),
+            )
+
+    def delete(self, visit_id: int) -> None:
+        with get_connection() as conn:
+            conn.execute("DELETE FROM visit WHERE id = ?", (visit_id,))
+
+    def set_document_path(self, visit_id: int, relpath: str) -> None:
+        with get_connection() as conn:
+            conn.execute(
+                "UPDATE visit SET document_path = ? WHERE id = ?", (relpath, visit_id)
+            )
 
     def list_by_person(self, person_id: int) -> list[Visit]:
         with get_connection() as conn:
