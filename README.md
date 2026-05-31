@@ -1,65 +1,82 @@
-# template-python-fastapi-jinja
+# doctor — семейный портал здоровья
 
-Шаблон веб-портала с собственным бэкендом: **Python + FastAPI + Jinja2**, слоистая
-архитектура, SQLite «из коробки», готовая обвязка тестов и инструментов.
+Веб-портал с собственным бэкендом для наблюдения за здоровьем семьи:
+**Python + FastAPI + Jinja2 + SQLite**, слоистая архитектура.
 
-Шаблон **обезличен** — в нём нет привязки к какой-либо предметной области. Есть лишь
-одна демонстрационная сущность `Item`, которая показывает, как проходит запрос через
-все слои. Создавая новый проект, замените её на свою модель и удалите пример.
+Хранит и связывает медицинские данные: анализы и показатели в динамике, визиты к
+врачам, рекомендации и контрольные точки, эпизоды болезней, семейные связи.
+
+Ядро **источник-независимое** («всеядный портал»): ручной ввод, импорт из других
+источников и будущий SMClinic-синк пишут в одну нормализованную схему через одни и
+те же сервисы. Происхождение записи хранится в колонке `source`.
+
+## Возможности
+
+- Список членов семьи и карточка человека.
+- Единая **хронология** по человеку: анализы (с ключевыми показателями и пометкой
+  отклонений), визиты с заключениями и рекомендациями, эпизоды болезней.
+- API рядов значений по показателям (`/api/person/{id}/markers`) — основа для
+  графиков динамики.
+- Идемпотентный **импорт** первичных данных из пространства `analizy`.
+
+В работе (следующие этапы): графики динамики, планирование визитов, UI семейных
+связей, формы ручного ввода, адаптер SMClinic, привязка PDF-документов.
 
 ## Стек
 
-| Компонент            | Решение                          |
-|----------------------|----------------------------------|
-| Язык                 | Python 3.11+                     |
-| Веб-фреймворк        | FastAPI                          |
-| ASGI-сервер          | Uvicorn                          |
-| Шаблоны              | Jinja2                           |
-| Конфигурация         | pydantic-settings                |
-| Хранилище            | SQLite (стандартный `sqlite3`)   |
-| Тесты                | pytest + httpx (TestClient)      |
-| Линтер / формат      | ruff                             |
-| Типы                 | mypy (strict)                    |
+| Компонент       | Решение                        |
+|-----------------|--------------------------------|
+| Язык            | Python 3.11+                   |
+| Веб-фреймворк   | FastAPI                        |
+| ASGI-сервер     | Uvicorn                        |
+| Шаблоны         | Jinja2                         |
+| Конфигурация    | pydantic-settings              |
+| Хранилище       | SQLite (стандартный `sqlite3`) |
+| Тесты           | pytest + httpx (TestClient)    |
+| Линтер / формат | ruff                           |
+| Типы            | mypy (strict)                  |
 
 ## Структура
 
 ```
 app/
-  main.py              ← фабрика приложения create_app() + lifespan (init_db)
+  main.py              ← фабрика create_app() + lifespan (init_db, сид справочника)
   config.py            ← настройки из окружения (pydantic-settings, префикс PORTAL_)
-  templating.py        ← общий объект Jinja2Templates + фильтры
+  templating.py        ← Jinja2Templates + фильтры дат
   dependencies.py      ← FastAPI-зависимости (внедрение сервисов)
-  schemas.py           ← pydantic-модели (контракты вход/выход)
+  schemas/             ← pydantic-модели по сущностям (person, analysis, clinical, …)
   routers/
-    pages.py           ← HTML-страницы (Jinja2)
-    api.py             ← JSON API (/api/...)
+    pages.py           ← HTML-страницы: список людей, карточка с хронологией
+    api.py             ← JSON API (/api/people, /api/person/{id}/timeline|markers, …)
   services/
-    items.py           ← бизнес-логика (слой между роутером и репозиторием)
-  repositories/
-    items.py           ← доступ к данным, единственное место с SQL
-  db/
-    database.py        ← соединение с SQLite + схема + init_db()
-  templates/           ← Jinja2-шаблоны (base.html, index.html)
-  static/              ← CSS / JS / картинки
-tests/                 ← pytest, изолированная БД на каждый тест
+    people.py          ← люди + сборка единой хронологии
+    analyses.py        ← анализы: обогащение референсом, флаги отклонений
+    markers.py         ← справочник + ряды значений
+  repositories/        ← доступ к данным, единственное место с SQL (по сущностям)
+  db/database.py       ← соединение с SQLite + схема (9 таблиц) + сид справочника
+  ingestion/
+    analizy.py         ← импортёр из пространства analizy (идемпотентный)
+    analizy_seed.json  ← нормализованный срез данных analizy
+  templates/           ← Jinja2-шаблоны (base.html, index.html, person.html)
+  static/              ← CSS
+scripts/import_analizy.py  ← CLI импорта (make import)
+tests/                 ← pytest, изолированная in-memory БД на каждый тест
 ```
 
-Поток запроса: **router → service → repository → SQLite**. Слой выше не лезет в детали
-слоя ниже на два уровня (роутер не пишет SQL, сервис не знает про HTTP).
+Поток запроса: **router → service → repository → SQLite**. Роутер не пишет SQL,
+сервис не знает про HTTP. Подробнее — в `CLAUDE.md`.
 
 ## Быстрый старт
 
 ```bash
-# 1. Зависимости (лучше в виртуальном окружении)
-make install            # = pip install -e ".[dev]"
-
-# 2. Настройки
+make install            # = pip install -e ".[dev]"  (лучше в venv)
 cp .env.example .env    # при необходимости поправьте значения
-
-# 3. Запуск
+# первичное наполнение: реальный analizy_seed.json лежит локально (в .gitignore);
+# для демо можно загрузить анонимный пример:
+python -m scripts.import_analizy app/ingestion/analizy_seed.example.json
 make dev                # uvicorn с авто-перезагрузкой
-# открыть http://127.0.0.1:8000  — UI
-#         http://127.0.0.1:8000/docs — Swagger
+# открыть http://127.0.0.1:8000        — UI
+#         http://127.0.0.1:8000/docs   — Swagger
 ```
 
 ## Команды
@@ -67,9 +84,9 @@ make dev                # uvicorn с авто-перезагрузкой
 ```bash
 make run         # запуск без reload (PORTAL_HOST / PORTAL_PORT)
 make dev         # запуск с авто-перезагрузкой
+make import      # импорт данных из analizy
 make test        # pytest
 make lint        # ruff check
-make format      # ruff format
 make typecheck   # mypy app
 make check       # lint + typecheck + test
 ```
@@ -78,32 +95,18 @@ make check       # lint + typecheck + test
 
 Все переменные читаются с префиксом `PORTAL_` (см. `app/config.py` и `.env.example`):
 
-| Переменная              | По умолчанию          | Назначение                       |
-|-------------------------|-----------------------|----------------------------------|
-| `PORTAL_APP_NAME`       | `FastAPI Jinja Portal`| заголовок страниц и OpenAPI      |
-| `PORTAL_DEBUG`          | `false`               | режим отладки FastAPI            |
-| `PORTAL_DATABASE_PATH`  | `data/app.sqlite3`    | путь к файлу SQLite              |
-| `PORTAL_HOST`           | `127.0.0.1`           | хост для `make run`              |
-| `PORTAL_PORT`           | `8000`                | порт для `make run`              |
+| Переменная              | По умолчанию              | Назначение                  |
+|-------------------------|---------------------------|-----------------------------|
+| `PORTAL_APP_NAME`       | `Семейный портал здоровья`| заголовок страниц и OpenAPI |
+| `PORTAL_DEBUG`          | `false`                   | режим отладки FastAPI       |
+| `PORTAL_DATABASE_PATH`  | `data/app.sqlite3`        | путь к файлу SQLite         |
+| `PORTAL_HOST`           | `127.0.0.1`               | хост для `make run`         |
+| `PORTAL_PORT`           | `8000`                    | порт для `make run`         |
 
-## Как использовать как шаблон
+## Данные и приватность
 
-1. Создайте репозиторий «из шаблона» (или склонируйте и смените `origin`).
-2. Поправьте `name`/`description` в `pyproject.toml`.
-3. Замените демонстрационную сущность `Item` на свою предметную модель:
-   - `app/schemas.py` — контракты;
-   - `app/db/database.py` — схема таблиц;
-   - `app/repositories/` — доступ к данным;
-   - `app/services/` — бизнес-логика;
-   - `app/routers/` — endpoints и страницы.
-4. Удалите примеры в `templates/index.html` и тестах, оставив свою функциональность.
-5. `make check` — убедитесь, что всё зелёное.
-
-## Куда расти
-
-- **Внешние API / клиенты** — кладите async-клиенты (httpx) отдельным пакетом и
-  инициализируйте в `lifespan` (`app/main.py`).
-- **Миграции** — простых `CREATE TABLE IF NOT EXISTS` хватает на старте; при росте
-  замените на Alembic или другой мигратор.
-- **Другая СУБД / ORM** — `repositories/` спроектированы как точка замены: меняете
-  реализацию репозитория, слои выше не трогаете.
+Портал работает локально, без аутентификации. Медицинские данные хранятся в
+локальном файле SQLite (`data/app.sqlite3`, в `.gitignore`). Реальные данные для
+импорта (`app/ingestion/analizy_seed.json`) тоже **в `.gitignore` и не коммитятся** —
+в репозитории только анонимный `analizy_seed.example.json`. Лабораторный результат
+сам по себе не заменяет клиническое решение врача.

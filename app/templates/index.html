@@ -1,27 +1,24 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Items</h1>
-<p class="hint">
-  Это демонстрационная сущность шаблона. Замените её на свою предметную область
-  (роутер → сервис → репозиторий → таблица) и удалите этот пример.
-</p>
+<h1>Члены семьи</h1>
 
-<form class="add-form" method="post" action="/items">
-  <input type="text" name="title" placeholder="Новый элемент…" required maxlength="200">
-  <button type="submit">Добавить</button>
-</form>
-
-{% if items %}
-<ul class="items">
-  {% for item in items %}
-  <li>
-    <span class="item-title">{{ item.title }}</span>
-    <time class="item-date">{{ item.created_at | datetimeformat }}</time>
+{% if people %}
+<ul class="people">
+  {% for row in people %}
+  <li class="person-card">
+    <a href="/person/{{ row.person.id }}">
+      <span class="person-name">{{ row.person.name }}</span>
+      <span class="person-meta">
+        {% if row.person.role == 'parent' %}родитель{% else %}ребёнок{% endif %}
+        {% if row.age is not none %} · {{ row.age }} лет{% endif %}
+        {% if row.person.birth_date %} · {{ row.person.birth_date | dateformat }}{% endif %}
+      </span>
+    </a>
   </li>
   {% endfor %}
 </ul>
 {% else %}
-<p class="empty">Пока ничего нет. Добавьте первый элемент.</p>
+<p class="empty">Пока нет ни одного человека. Импортируйте данные: <code>make import</code>.</p>
 {% endif %}
 {% endblock %}

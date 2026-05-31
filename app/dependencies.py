@@ -1,10 +1,18 @@
-from app.services.items import ItemService
+from app.services.analyses import AnalysisService
+from app.services.markers import MarkerService
+from app.services.people import PersonService
+
+# Фабрики сервисов как FastAPI-зависимости. Вынесены отдельно, чтобы тесты могли
+# переопределять их через ``app.dependency_overrides``.
 
 
-def get_item_service() -> ItemService:
-    """FastAPI-зависимость: сервис сущности Item.
+def get_person_service() -> PersonService:
+    return PersonService()
 
-    Вынесена отдельно, чтобы тесты могли переопределять её через
-    ``app.dependency_overrides``.
-    """
-    return ItemService()
+
+def get_analysis_service() -> AnalysisService:
+    return AnalysisService()
+
+
+def get_marker_service() -> MarkerService:
+    return MarkerService()

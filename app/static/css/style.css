@@ -5,6 +5,10 @@
   --card: #ffffff;
   --accent: #4a6cf7;
   --border: #e5e7eb;
+  --analysis: #2563eb;
+  --visit: #059669;
+  --illness: #dc2626;
+  --alert: #b45309;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -30,53 +34,123 @@ body {
 }
 
 .container {
-  max-width: 720px;
+  max-width: 860px;
   margin: 32px auto;
   padding: 0 16px;
 }
 
-h1 { font-size: 1.4rem; margin-bottom: 8px; }
+h1 { font-size: 1.5rem; margin-bottom: 8px; }
+h2 { font-size: 1.15rem; margin: 28px 0 14px; }
 
-.hint { color: var(--muted); font-size: .85rem; margin-bottom: 20px; }
+.empty, .hint { color: var(--muted); }
 
-.add-form {
+/* ---- Список людей ---- */
+.people { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+
+.person-card a {
   display: flex;
-  gap: 8px;
-  margin-bottom: 24px;
-}
-
-.add-form input {
-  flex: 1;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: .95rem;
-}
-
-.add-form button {
-  padding: 10px 18px;
-  border: none;
-  border-radius: 8px;
-  background: var(--accent);
-  color: #fff;
-  font-size: .95rem;
-  cursor: pointer;
-}
-
-.add-form button:hover { opacity: .9; }
-
-.items { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-
-.items li {
+  flex-direction: column;
+  gap: 4px;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  border-radius: 12px;
+  padding: 16px 18px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color .15s, box-shadow .15s;
 }
 
-.item-date { color: var(--muted); font-size: .8rem; }
+.person-card a:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 10px rgba(74, 108, 247, .12);
+}
 
-.empty { color: var(--muted); }
+.person-name { font-weight: 600; font-size: 1.05rem; }
+.person-meta { color: var(--muted); font-size: .85rem; }
+
+/* ---- Карточка человека ---- */
+.back { margin-bottom: 16px; }
+.back a { color: var(--muted); text-decoration: none; font-size: .85rem; }
+.back a:hover { color: var(--accent); }
+
+.person-header { margin-bottom: 8px; }
+.relations { font-size: .85rem; margin-top: 6px; }
+.relations a { color: var(--accent); text-decoration: none; }
+
+/* ---- Хронология ---- */
+.timeline { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+
+.event {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+}
+
+.event--analysis { border-left-color: var(--analysis); }
+.event--visit    { border-left-color: var(--visit); }
+.event--illness  { border-left-color: var(--illness); }
+
+.event-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.event-date { color: var(--muted); font-size: .82rem; min-width: 84px; }
+.event-title { font-weight: 600; }
+
+.badge {
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: #fff;
+}
+
+.badge--analysis { background: var(--analysis); }
+.badge--visit    { background: var(--visit); }
+.badge--illness  { background: var(--illness); }
+
+.event-detail { margin-top: 6px; color: #374151; font-size: .9rem; }
+
+/* ---- Измерения ---- */
+.measurements, .recommendations { list-style: none; margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+
+.measure {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: .9rem;
+  padding: 2px 0;
+}
+
+.measure-name { color: var(--muted); min-width: 160px; }
+.measure-value { font-weight: 600; font-variant-numeric: tabular-nums; }
+.measure--alert .measure-value { color: var(--alert); }
+
+.measure-flag {
+  font-size: .72rem;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: #fef3c7;
+  color: var(--alert);
+}
+.flag--high::before { content: "↑ "; }
+.flag--low::before  { content: "↓ "; }
+
+.recommendations { font-size: .88rem; }
+.recommendations li {
+  padding: 4px 0;
+  border-top: 1px dashed var(--border);
+}
+.rec-kind {
+  font-size: .72rem;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-right: 6px;
+}
+.rec-due { color: var(--alert); font-size: .8rem; margin-left: 6px; }

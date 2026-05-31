@@ -15,7 +15,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    app_name: str = "FastAPI Jinja Portal"
+    app_name: str = "Семейный портал здоровья"
     debug: bool = False
     database_path: Path = Path("data/app.sqlite3")
     host: str = "127.0.0.1"

@@ -1,7 +1,10 @@
-.PHONY: install run dev test lint format typecheck check
+.PHONY: install run dev test lint format typecheck check import
 
 install:        ## Установить зависимости (с dev-инструментами)
 	pip install -e ".[dev]"
+
+import:         ## Импортировать данные из пространства analizy
+	python -m scripts.import_analizy
 
 run:            ## Запустить сервер
 	uvicorn app.main:app --host $${PORTAL_HOST:-127.0.0.1} --port $${PORTAL_PORT:-8000}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}{{ person.name }} — {{ app_name }}{% endblock %}
+
+{% block content %}
+<p class="back"><a href="/">← все члены семьи</a></p>
+
+<header class="person-header">
+  <h1>{{ person.name }}</h1>
+  <p class="person-meta">
+    {% if person.full_name %}{{ person.full_name }} · {% endif %}
+    {% if person.role == 'parent' %}родитель{% else %}ребёнок{% endif %}
+    {% if age is not none %} · {{ age }} лет{% endif %}
+    {% if person.birth_date %} · р. {{ person.birth_date | dateformat }}{% endif %}
+  </p>
+  {% if relations %}
+  <p class="relations">
+    Семья:
+    {% for r in relations %}
+      <a href="/person/{{ r.relative_id }}">{{ r.relative_name }}</a>{% if not loop.last %}, {% endif %}
+    {% endfor %}
+  </p>
+  {% endif %}
+</header>
+
+<h2>Хронология</h2>
+
+{% if timeline %}
+<ol class="timeline">
+  {% for e in timeline %}
+  <li class="event event--{{ e.kind }}">
+    <div class="event-head">
+      <time class="event-date">{{ e.date | dateformat }}</time>
+      <span class="badge badge--{{ e.kind }}">
+        {%- if e.kind == 'analysis' %}анализ
+        {%- elif e.kind == 'visit' %}визит
+        {%- elif e.kind == 'illness' %}болезнь
+        {%- else %}{{ e.kind }}{% endif -%}
+      </span>
+      <span class="event-title">{{ e.title }}</span>
+    </div>
+
+    {% if e.kind == 'analysis' and e.extra.measurements %}
+    <ul class="measurements">
+      {% for m in e.extra.measurements %}
+      <li class="measure {% if m.flag in ('high', 'low', 'positive') %}measure--alert{% endif %}">
+        <span class="measure-name">{{ m.marker_name or m.marker_code }}</span>
+        <span class="measure-value">
+          {{ m.value_text if m.value_num is none else m.value_num }}{% if m.unit %} {{ m.unit }}{% endif %}
+        </span>
+        {% if m.flag and m.flag != 'normal' %}<span class="measure-flag flag--{{ m.flag }}">{{ m.flag }}</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% elif e.detail %}
+    <p class="event-detail">{{ e.detail }}</p>
+    {% endif %}
+
+    {% if e.kind == 'visit' and e.extra.recommendations %}
+    <ul class="recommendations">
+      {% for r in e.extra.recommendations %}
+      <li>
+        {% if r.kind %}<span class="rec-kind">{{ r.kind }}</span>{% endif %}
+        {{ r.text }}
+        {% if r.due_date %}<span class="rec-due">до {{ r.due_date | dateformat }}</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if e.kind == 'illness' and e.extra.status %}
+    <p class="event-detail">статус: {{ e.extra.status }}{% if e.extra.end_date %} · до {{ e.extra.end_date | dateformat }}{% endif %}</p>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ol>
+{% else %}
+<p class="empty">По этому человеку пока нет событий.</p>
+{% endif %}
+{% endblock %}

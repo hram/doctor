@@ -1,0 +1,79 @@
+{
+  "_comment": "АНОНИМНЫЙ пример структуры seed для импорта. Реальные медицинские данные семьи в репозиторий не коммитятся — они лежат в analizy_seed.json (в .gitignore), только локально. Этот файл документирует формат и используется в тестах. Все имена и значения вымышленные.",
+  "people": [
+    {
+      "name": "Ребёнок",
+      "full_name": "Пример Ребёнок Примерович",
+      "birth_date": "2015-01-15",
+      "role": "child",
+      "sex": "male",
+      "analyses": [
+        {
+          "date": "2024-01-15",
+          "category": "биохимия",
+          "title": "Биохимия крови: АСЛО, железо",
+          "measurements": [
+            {"marker_code": "aslo", "value_num": 250.0},
+            {"marker_code": "iron", "value_num": 15.0}
+          ]
+        },
+        {
+          "date": "2024-06-20",
+          "category": "кровь",
+          "title": "Общий анализ крови, лейкоформула",
+          "measurements": [
+            {"marker_code": "hgb", "value_num": 130.0, "ref_low": 110.0, "ref_high": 145.0},
+            {"marker_code": "wbc", "value_num": 7.0, "ref_low": 4.5, "ref_high": 13.5},
+            {"marker_code": "plt", "value_num": 300.0, "ref_low": 150.0, "ref_high": 450.0}
+          ]
+        },
+        {
+          "date": "2024-06-20",
+          "category": "узи",
+          "title": "УЗИ органов брюшной полости",
+          "notes": "Без структурных изменений (пример текстового заключения)"
+        }
+      ],
+      "visits": [
+        {
+          "date": "2024-06-20",
+          "specialty": "Педиатр",
+          "doctor_name": "Пример И.И.",
+          "conclusion": "ОРВИ, реконвалесцент (пример заключения)",
+          "recommendations": [
+            {"text": "Обильное питьё, покой", "kind": "lifestyle"},
+            {"text": "Контроль АСЛО через 1 месяц", "kind": "control", "due_date": "2024-07-20"}
+          ]
+        }
+      ],
+      "illnesses": [
+        {
+          "start_date": "2024-06-10",
+          "title": "ОРВИ",
+          "status": "resolved",
+          "notes": "Пример эпизода болезни"
+        }
+      ]
+    },
+    {
+      "name": "Родитель",
+      "full_name": "Пример Родитель Примерович",
+      "birth_date": "1985-05-05",
+      "role": "parent",
+      "sex": "female",
+      "analyses": [
+        {
+          "date": "2024-02-01",
+          "category": "биохимия",
+          "title": "Биохимия крови: глюкоза",
+          "measurements": [
+            {"marker_code": "glucose", "value_num": 4.8}
+          ]
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {"person": "Родитель", "relative": "Ребёнок", "kind": "parent_of"}
+  ]
+}
